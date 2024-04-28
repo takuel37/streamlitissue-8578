@@ -116,7 +116,6 @@ class FileUploaderSerde:
 
     def serialize(self, files: SomeUploadedFiles) -> FileUploaderStateProto:
         state_proto = FileUploaderStateProto()
-
         if not files:
             return state_proto
         elif not isinstance(files, list):
@@ -129,10 +128,32 @@ class FileUploaderSerde:
             file_info.file_id = f.file_id
             file_info.name = f.name
             file_info.size = f.size
-            file_info.file_urls.CopyFrom(f._file_urls)
+            file_info.type = f.type  # Assuming there's support in the proto for this
+            file_info.preview_url = f.preview_url  # Assuming there's support in the proto for this
 
         return state_proto
 
+
+@dataclass
+class UploadedFile:
+    file_id: str
+    name: str
+    size: int
+    type: str  # Add a type field if not already present
+    preview_url: str = ""  # New field to store the image preview URL
+
+    def __init__(self, file_record, file_urls):
+        self.file_id = file_record.file_id
+        self.name = file_record.name
+        self.size = file_record.size
+        self.type = file_record.type  # Assume this is set somewhere in the actual upload handling
+        self.preview_url = self.generate_preview_url()  # Generate or define logic to set this
+
+    def generate_preview_url(self):
+        # Logic to generate a URL for previewing the file
+        if self.type.startswith('image/'):
+            return f"/path/to/preview/{self.file_id}"  # This is hypothetical
+        return ""
 
 class FileUploaderMixin:
     # Multiple overloads are defined on `file_uploader()` below to represent
